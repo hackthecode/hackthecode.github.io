@@ -1,0 +1,6 @@
+excerpt_separator: ""
+pygments: true
+markdown: kramdown
+url: http://hackthecode.github.io
+title: HackTheCode
+paginate: 5
