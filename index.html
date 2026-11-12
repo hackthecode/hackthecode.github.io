@@ -8,7 +8,10 @@
 <meta name="theme-color" content="#050506">
 <meta property="og:title" content="Hack The Code">
 <meta property="og:description" content="Dragomir Tsanev — browser games and tools. Public projects, live links and source.">
-<meta property="og:image" content="https://hackthecode.github.io/assets/evil.png">
+<meta property="og:image" content="https://hackthecode.github.io/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta property="og:url" content="https://hackthecode.github.io/">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -288,11 +291,80 @@ footer a:hover { color: var(--red); }
   .arch a { grid-template-columns: minmax(0, 1fr) auto; }
   .arch .y { display: none; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  html { scroll-behavior: auto; }
-  #rain { display: none; }
+/* ---------- effects switch ---------- */
+.fx-btn {
+  font: inherit; letter-spacing: inherit; text-transform: uppercase; color: var(--dim);
+  background: none; border: 1px solid var(--line); padding: 3px 9px; cursor: pointer;
 }
+.fx-btn b { color: var(--red); font-weight: 700; }
+.fx-btn[aria-pressed="false"] b { color: var(--dim); }
+.fx-btn:hover { border-color: var(--red); }
+.fx-off *, .fx-off *::before, .fx-off *::after { animation: none !important; transition: none !important; }
+.fx-off #rain, .fx-off .fx-scan { display: none; }
+
+/* ---------- boot screen ---------- */
+#boot {
+  position: fixed; inset: 0; z-index: 50; background: var(--void);
+  display: grid; place-items: center; cursor: pointer;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+}
+#boot pre { margin: 0; width: min(100%, 460px); font: 500 14px/1.7 var(--mono); color: var(--dim); white-space: pre-wrap; }
+#boot pre div:first-child { color: var(--bone); }
+#boot .ok { color: var(--red); font-weight: 700; letter-spacing: .2em; text-shadow: 0 0 18px var(--red); }
+#boot.out { animation: boot-out .45s steps(6) forwards; pointer-events: none; }
+@keyframes boot-out {
+  0% { opacity: 1; clip-path: inset(0); transform: none; }
+  30% { clip-path: inset(18% 0 30% 0); transform: translateX(-14px); }
+  55% { clip-path: inset(52% 0 12% 0); transform: translateX(12px); opacity: .8; }
+  80% { clip-path: inset(40% 0 44% 0); transform: translateX(-6px); opacity: .5; }
+  100% { clip-path: inset(50% 0 50% 0); opacity: 0; }
+}
+
+/* ---------- social ---------- */
+.social { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 22px 0 0; padding: 0; }
+.social a {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px 5px 5px;
+  border: 1px solid var(--line); text-decoration: none;
+  font-size: 12px; letter-spacing: .08em; color: var(--dim);
+  transition: border-color .15s, color .15s;
+}
+.social a b { display: inline-grid; place-items: center; min-width: 26px; height: 22px; background: var(--line); color: var(--bone); font-size: 11px; letter-spacing: .04em; }
+.social a:hover { border-color: var(--red); color: var(--bone); }
+.social a:hover b { background: var(--red); color: var(--void); }
+footer .social { margin: 0; }
+footer .social a { padding: 0; border: 0; }
+footer .social a span { display: none; }
+
+/* ---------- project shots ---------- */
+.shot { position: relative; display: block; margin: -20px -20px 2px; aspect-ratio: 16 / 9; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--void); }
+.shot img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.75) contrast(1.05); transition: transform .5s, filter .3s; }
+.shot::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(156,15,29,.28), transparent 45%, rgba(5,5,6,.55)); mix-blend-mode: multiply; transition: opacity .3s; }
+.card:hover .shot img { transform: scale(1.05); filter: none; }
+.card:hover .shot::after { opacity: .35; }
+.gh { font-size: 11px; letter-spacing: .1em; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* ---------- skills ---------- */
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 40px; }
+.skill { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.skill-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.skill-top b { font: 700 1.05rem/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+.skill-top span { font-size: 11px; letter-spacing: .1em; color: var(--dim); text-align: right; }
+.meter {
+  --seg: 10;
+  height: 14px; position: relative;
+  background: repeating-linear-gradient(90deg, var(--line) 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
+}
+.meter::after {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, var(--red) 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
+  clip-path: inset(0 calc(100% - var(--v) * 10%) 0 0);
+  filter: drop-shadow(0 0 5px rgba(255,31,51,.6));
+}
+.meter:not(.on)::after { clip-path: inset(0 100% 0 0); }
+.meter.on::after { transition: clip-path 1.1s steps(10); }
+.fx-off .meter::after { clip-path: inset(0 calc(100% - var(--v) * 10%) 0 0); }
+
+@media (max-width: 700px) { .skills { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
 <body>
@@ -306,6 +378,7 @@ footer a:hover { color: var(--red); }
     <span class="hide-s" data-bg="България">Bulgaria</span>
     <span class="grow"></span>
     <span class="hide-s"><span data-bg="София">Sofia</span> <b id="clock">--:--:--</b></span>
+    <button type="button" class="fx-btn" id="fx-toggle" aria-pressed="true" title="Effects">FX <b>ON</b></button>
     <span class="lang" role="group" aria-label="Language">
       <button type="button" id="lang-en" aria-pressed="true">EN</button>
       <button type="button" id="lang-bg" aria-pressed="false">BG</button>
@@ -336,6 +409,13 @@ footer a:hover { color: var(--red); }
         <a class="btn" href="#profile" data-bg="Кой съм аз">Who I am</a>
         <a class="btn" href="https://github.com/hackthecode" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
+      <ul class="social">
+        <li><a href="https://github.com/hackthecode" target="_blank" rel="noopener" aria-label="GitHub"><b>GH</b><span>GitHub</span></a></li>
+        <li><a href="https://www.facebook.com/HackTheCode" target="_blank" rel="noopener" aria-label="Facebook"><b>FB</b><span>Facebook</span></a></li>
+        <li><a href="https://www.instagram.com/evil___society/" target="_blank" rel="noopener" aria-label="Instagram"><b>IG</b><span>Instagram</span></a></li>
+        <li><a href="https://www.tiktok.com/@hackthecode" target="_blank" rel="noopener" aria-label="TikTok"><b>TT</b><span>TikTok</span></a></li>
+        <li><a href="https://discord.com/users/139028293985894400" target="_blank" rel="noopener" aria-label="Discord"><b>DC</b><span>Discord</span></a></li>
+      </ul>
     </div>
 
     <figure class="id">
@@ -356,10 +436,12 @@ footer a:hover { color: var(--red); }
     <div class="grid">
 
       <article class="card"><div class="card-in">
+        <a class="shot" href="https://hackthecode.github.io/evil-games/" tabindex="-1" aria-hidden="true"><img src="assets/shot-evil-games.webp" width="800" height="450" alt="Evil Games home page" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="игрален портал">game portal</span></div>
         <h3>Evil Games</h3>
         <p data-bg="Портал с браузър игри: табла, шах, белот, сантасе, блато, не се сърди човече, пасианс и стратегията Evil Empires. Срещу компютъра или онлайн с приятели. На български и английски.">A browser game portal: backgammon, chess, belot, santase, blato, ludo, solitaire and the Evil Empires strategy game. Play the computer or friends online. English and Bulgarian.</p>
         <ul class="chips"><li>JavaScript</li><li>PWA</li><li>Supabase</li></ul>
+        <span class="gh" data-repo="evil-games" hidden></span>
         <div class="cta">
           <a class="btn hot" href="https://hackthecode.github.io/evil-games/" data-bg="▶ Играй">▶ Play</a>
           <a class="btn" href="https://github.com/hackthecode/evil-games" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
@@ -367,10 +449,12 @@ footer a:hover { color: var(--red); }
       </div></article>
 
       <article class="card"><div class="card-in">
+        <a class="shot" href="https://hackthecode.github.io/evil-games/imoti/" tabindex="-1" aria-hidden="true"><img src="assets/shot-imoti.webp" width="800" height="450" alt="Imoti i Imperii board during a game" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="настолна игра">board game</span></div>
         <h3 data-bg="Имоти и Империи">Imoti i Imperii</h3>
         <p data-bg="Настолна игра с имоти за 2 до 10 играчи — с ботове или онлайн в стая с код. Целият ход на играта се води от собствен сървър, така че никой не може да мами.">A property board game for 2 to 10 players, with bots or online in a room with a code. Its own server runs every move, so nobody can cheat.</p>
         <ul class="chips"><li>Python</li><li>FastAPI</li><li>Socket.IO</li></ul>
+        <span class="gh" data-repo="evil-games" hidden></span>
         <div class="cta">
           <a class="btn hot" href="https://hackthecode.github.io/evil-games/imoti/" data-bg="▶ Играй">▶ Play</a>
           <a class="btn" href="https://github.com/hackthecode/evil-games/tree/main/server/imoti" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
@@ -378,10 +462,12 @@ footer a:hover { color: var(--red); }
       </div></article>
 
       <article class="card"><div class="card-in">
+        <a class="shot" href="https://hackthecode.github.io/pu-foam-app/" tabindex="-1" aria-hidden="true"><img src="assets/shot-pu-foam.webp" width="800" height="450" alt="PU Foam material calculator" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="производство">production tool</span></div>
         <h3 data-bg="ПУ Пяна">PU Foam</h3>
         <p data-bg="Производствен асистент за пенополиуретан (дунапрен): калкулатор за материали и плътност, калибратор обороти ↔ грамове, рецепти с търсачка. Данните идват на живо от Google Sheets и работи и без интернет.">A production assistant for polyurethane foam: material and density calculator, RPM ↔ grams calibrator, searchable recipes. Data syncs live from Google Sheets and it keeps working offline.</p>
         <ul class="chips"><li>JavaScript</li><li>PWA</li><li>Google Sheets</li></ul>
+        <span class="gh" data-repo="pu-foam-app" hidden></span>
         <div class="cta">
           <a class="btn hot" href="https://hackthecode.github.io/pu-foam-app/" data-bg="▶ Отвори">▶ Open</a>
           <a class="btn" href="https://github.com/hackthecode/pu-foam-app" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
@@ -391,16 +477,29 @@ footer a:hover { color: var(--red); }
     </div>
   </section>
 
+  <section id="skills">
+    <div class="sec-head">
+      <h2 data-bg="Умения">Skills</h2><span class="rule"></span>
+      <span class="count" data-bg="самооценка">self-assessed</span>
+    </div>
+    <div class="skills">
+      <div class="skill"><div class="skill-top"><b data-bg="Мрежи">Networks</b><span>routing · switching · services</span></div><div class="meter" style="--v:9" role="img" aria-label="Networks: 9 of 10"></div></div>
+      <div class="skill"><div class="skill-top"><b data-bg="Системна администрация">System administration</b><span>Windows · Linux · FreeBSD</span></div><div class="meter" style="--v:9" role="img" aria-label="System administration: 9 of 10"></div></div>
+      <div class="skill"><div class="skill-top"><b data-bg="Linux / BSD">Linux / BSD</b><span>Red Hat · Debian · Arch · FreeBSD</span></div><div class="meter" style="--v:8" role="img" aria-label="Linux / BSD: 8 of 10"></div></div>
+      <div class="skill"><div class="skill-top"><b data-bg="Програмиране">Programming</b><span>Java · C# · JavaScript · Python · PHP</span></div><div class="meter" style="--v:7" role="img" aria-label="Programming: 7 of 10"></div></div>
+    </div>
+  </section>
+
   <section>
     <div class="sec-head">
       <h2 data-bg="Архив">Archive</h2><span class="rule"></span>
       <span class="count" data-bg="учебни записи">training logs</span>
     </div>
-    <ul class="arch">
-      <li><a href="https://github.com/hackthecode/Java-Fundamentals-2016" target="_blank" rel="noopener">
+    <ul class="arch" id="archive-list">
+      <li><a data-repo="Java-Fundamentals-2016" href="https://github.com/hackthecode/Java-Fundamentals-2016" target="_blank" rel="noopener">
         <span class="n">Java-Fundamentals-2016<small data-bg="Упражнения от курса Java Fundamentals в СофтУни">Exercises from the SoftUni Java Fundamentals course</small></span>
         <span class="l">Java</span><span class="y">2016</span></a></li>
-      <li><a href="https://github.com/hackthecode/SoftUni_Programming_Basics-11.2015" target="_blank" rel="noopener">
+      <li><a data-repo="SoftUni_Programming_Basics-11.2015" href="https://github.com/hackthecode/SoftUni_Programming_Basics-11.2015" target="_blank" rel="noopener">
         <span class="n">SoftUni_Programming_Basics-11.2015<small data-bg="Домашни от курса Programming Basics в СофтУни">Homework from the SoftUni Programming Basics course</small></span>
         <span class="l">C#</span><span class="y">2015</span></a></li>
     </ul>
@@ -457,7 +556,13 @@ Wide range of computing
   <div class="wrap">
     <span>© 2026 Dragomir Tsanev</span>
     <span data-bg="без тракери · без бисквитки">no trackers · no cookies</span>
-    <a href="https://github.com/hackthecode" target="_blank" rel="noopener">github.com/hackthecode</a>
+    <ul class="social">
+      <li><a href="https://github.com/hackthecode" target="_blank" rel="noopener" aria-label="GitHub"><b>GH</b><span>GitHub</span></a></li>
+      <li><a href="https://www.facebook.com/HackTheCode" target="_blank" rel="noopener" aria-label="Facebook"><b>FB</b><span>Facebook</span></a></li>
+      <li><a href="https://www.instagram.com/evil___society/" target="_blank" rel="noopener" aria-label="Instagram"><b>IG</b><span>Instagram</span></a></li>
+      <li><a href="https://www.tiktok.com/@hackthecode" target="_blank" rel="noopener" aria-label="TikTok"><b>TT</b><span>TikTok</span></a></li>
+      <li><a href="https://discord.com/users/139028293985894400" target="_blank" rel="noopener" aria-label="Discord"><b>DC</b><span>Discord</span></a></li>
+    </ul>
   </div>
 </footer>
 
@@ -466,21 +571,52 @@ Wide range of computing
 
 <script>
 (() => {
-  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const root = document.documentElement;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  };
+
+  // ---- effects switch: on for everyone, the button in the bar turns them off ----
+  const fxBtn = document.getElementById("fx-toggle");
+  let fx = store.get("htc.fx") !== "off";
+  const applyFx = () => {
+    root.classList.toggle("fx-off", !fx);
+    fxBtn.setAttribute("aria-pressed", String(fx));
+    fxBtn.querySelector("b").textContent = fx ? "ON" : "OFF";
+  };
+  applyFx();
+  fxBtn.addEventListener("click", () => { fx = !fx; store.set("htc.fx", fx ? "on" : "off"); applyFx(); });
+
+  // ---- decode: a heading resolves out of scrambled symbols ----
+  const NOISE = "01#$%&/<>[]{}=+*!?";
+  const decode = (el) => {
+    clearInterval(el._dec);
+    const target = el.textContent;
+    if (!fx || !target.trim()) return;
+    let shown = 0;
+    el._dec = setInterval(() => {
+      shown += Math.max(1, target.length / 14);
+      if (shown >= target.length) { clearInterval(el._dec); el.textContent = target; return; }
+      let out = target.slice(0, shown | 0);
+      for (let i = shown | 0; i < target.length; i++) {
+        out += target[i] === " " ? " " : NOISE[(Math.random() * NOISE.length) | 0];
+      }
+      el.textContent = out;
+    }, 45);
+  };
 
   // ---- language: English is in the markup, Bulgarian in data-bg ----
   const nodes = [...document.querySelectorAll("[data-bg]")];
   nodes.forEach((n) => { n.dataset.en = n.innerHTML; });
   const setLang = (lang) => {
-    nodes.forEach((n) => { n.innerHTML = lang === "bg" ? n.dataset.bg : n.dataset.en; });
-    document.documentElement.lang = lang;
+    nodes.forEach((n) => { clearInterval(n._dec); n.innerHTML = lang === "bg" ? n.dataset.bg : n.dataset.en; });
+    root.lang = lang;
     document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
     document.getElementById("lang-bg").setAttribute("aria-pressed", String(lang === "bg"));
-    try { localStorage.setItem("htc.lang", lang); } catch (e) {}
+    store.set("htc.lang", lang);
   };
-  let saved = null;
-  try { saved = localStorage.getItem("htc.lang"); } catch (e) {}
-  setLang(saved || ((navigator.language || "").toLowerCase().startsWith("bg") ? "bg" : "en"));
+  setLang(store.get("htc.lang") || ((navigator.language || "").toLowerCase().startsWith("bg") ? "bg" : "en"));
   document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
   document.getElementById("lang-bg").addEventListener("click", () => setLang("bg"));
 
@@ -516,43 +652,135 @@ Wide range of computing
     term.innerHTML = '<span class="p">$</span> ' + caret;
     setTimeout(step, 450);
   };
-  // Typing is text appearing in place, not movement, so it also runs with reduced motion.
-  {
+
+  // ---- things that start when they scroll into view ----
+  const onSeen = (el, fn, threshold) => {
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((hits) => {
+      if (hits.some((h) => h.isIntersecting)) { io.disconnect(); fn(el); }
+    }, { threshold: threshold || 0.2 });
+    io.observe(el);
+  };
+  const startPage = () => {
+    document.querySelectorAll("h1 .glitch").forEach(decode);
     retype(document.getElementById("term"));
-    const profile = document.getElementById("profile-term");
-    if ("IntersectionObserver" in window) {
-      const seen = new IntersectionObserver((hits) => {
-        if (hits.some((h) => h.isIntersecting)) { seen.disconnect(); retype(profile); }
-      }, { threshold: 0.15 });
-      seen.observe(profile);
-    }
+    document.querySelectorAll(".sec-head h2").forEach((h2) => onSeen(h2, decode, 0.6));
+    onSeen(document.getElementById("profile-term"), retype, 0.15);
+    document.querySelectorAll(".meter").forEach((m) => onSeen(m, (el) => el.classList.add("on"), 0.6));
+  };
+
+  // ---- boot screen: once per visit, any key or click skips it ----
+  const BOOT = [
+    "HTC-BIOS v2.6 // hackthecode.github.io",
+    "",
+    "CPU ................... OK",
+    "MEMORY ................ 640K OK",
+    "NET: uplink ........... ESTABLISHED",
+    "MOUNT /home/evil ...... OK",
+    "LOADING dossier ....... OK",
+    "DECRYPTING projects ... OK",
+    "",
+    "ACCESS GRANTED",
+  ];
+  let booted = false;
+  try { booted = sessionStorage.getItem("htc.boot") === "1"; } catch (e) {}
+  if (!fx || booted) {
+    startPage();
+  } else {
+    try { sessionStorage.setItem("htc.boot", "1"); } catch (e) {}
+    const boot = document.createElement("div");
+    boot.id = "boot";
+    boot.setAttribute("aria-hidden", "true");
+    const pre = document.createElement("pre");
+    boot.append(pre);
+    document.body.append(boot);
+    let i = 0, over = false;
+    const finish = () => {
+      if (over) return;
+      over = true;
+      clearInterval(timer);
+      boot.classList.add("out");
+      setTimeout(() => boot.remove(), 450);
+      startPage();
+    };
+    const timer = setInterval(() => {
+      if (i >= BOOT.length) { clearInterval(timer); setTimeout(finish, 380); return; }
+      const row = document.createElement("div");
+      row.textContent = BOOT[i] || " ";
+      if (i === BOOT.length - 1) row.className = "ok";
+      pre.append(row);
+      i++;
+    }, 130);
+    boot.addEventListener("click", finish);
+    addEventListener("keydown", finish, { once: true });
   }
 
-  // ---- hex rain ----
+  // ---- projects from GitHub: stars and last update on the cards, new public repos into the archive ----
+  const KNOWN = new Set(["hackthecode.github.io"]);
+  document.querySelectorAll("[data-repo]").forEach((el) => KNOWN.add(el.dataset.repo));
+  fetch("https://api.github.com/users/hackthecode/repos?per_page=100&sort=pushed")
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((repos) => {
+      const list = document.getElementById("archive-list");
+      repos.forEach((repo) => {
+        const pushed = (repo.pushed_at || "").slice(0, 7);
+        document.querySelectorAll('.gh[data-repo="' + repo.name + '"]').forEach((el) => {
+          el.textContent = (repo.stargazers_count ? "★ " + repo.stargazers_count + " · " : "") + "updated " + pushed;
+          el.hidden = false;
+        });
+        if (KNOWN.has(repo.name) || repo.fork || repo.private) return;
+        const a = document.createElement("a");
+        a.href = repo.html_url; a.target = "_blank"; a.rel = "noopener";
+        const n = document.createElement("span"); n.className = "n"; n.textContent = repo.name;
+        if (repo.description) { const d = document.createElement("small"); d.textContent = repo.description; n.append(d); }
+        const l = document.createElement("span"); l.className = "l"; l.textContent = repo.language || "";
+        const y = document.createElement("span"); y.className = "y"; y.textContent = pushed.slice(0, 4);
+        a.append(n, l, y);
+        const li = document.createElement("li"); li.append(a);
+        list.prepend(li);
+      });
+    })
+    .catch(() => {});   // offline or rate-limited: the page keeps what is written in it
+
+  // ---- hex rain that lights up around the pointer ----
   const cv = document.getElementById("rain");
-  if (!calm && cv.getContext) {
+  if (cv.getContext) {
     const cx = cv.getContext("2d");
     const glyphs = "0123456789ABCDEF<>/{}#$";
     const size = 18;
-    let cols = 0, drops = [], w = 0, h = 0;
+    let cols = 0, drops = [], w = 0, h = 0, px = -9999, py = -9999;
     const fit = () => {
       w = cv.width = innerWidth; h = cv.height = innerHeight;
       cols = Math.ceil(w / size);
       drops = Array.from({ length: cols }, () => Math.random() * -60);
     };
     fit(); addEventListener("resize", fit);
-    let last = 0;
+    addEventListener("pointermove", (e) => { px = e.clientX; py = e.clientY; }, { passive: true });
+    addEventListener("pointerleave", () => { px = py = -9999; });
+    const glyph = () => glyphs[(Math.random() * glyphs.length) | 0];
+    let last = 0, wasOn = true;
     const draw = (t) => {
       requestAnimationFrame(draw);
+      if (!fx) { if (wasOn) { cx.clearRect(0, 0, w, h); wasOn = false; } return; }
+      wasOn = true;
       if (document.hidden || t - last < 70) return;
       last = t;
       cx.fillStyle = "rgba(5,5,6,.14)"; cx.fillRect(0, 0, w, h);
       cx.font = size - 4 + "px JetBrains Mono, monospace";
       for (let i = 0; i < cols; i++) {
-        const y = drops[i] * size;
-        cx.fillStyle = Math.random() < .04 ? "#ece5dd" : "#ff1f33";
-        cx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * size, y);
+        const x = i * size, y = drops[i] * size;
+        const near = Math.hypot(x - px, y - py) < 150;
+        cx.fillStyle = near || Math.random() < .04 ? "#ece5dd" : "#ff1f33";
+        cx.fillText(glyph(), x, y);
         drops[i] = y > h && Math.random() > .975 ? 0 : drops[i] + 1;
+      }
+      // sparks of bright symbols right under the pointer
+      if (px > -999) {
+        cx.fillStyle = "#ece5dd";
+        for (let k = 0; k < 3; k++) {
+          const a = Math.random() * 6.283, r = Math.random() * 110;
+          cx.fillText(glyph(), Math.round((px + Math.cos(a) * r) / size) * size, Math.round((py + Math.sin(a) * r) / size) * size);
+        }
       }
     };
     requestAnimationFrame(draw);

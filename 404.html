@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Access Denied · Hack The Code</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050506">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Tektur:wght@700;900&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --void: #050506; --panel: #0d0a0b; --line: #33151a; --red: #ff1f33; --bone: #ece5dd; --dim: #94848a; --fringe: #2be0da;
+  --display: "Tektur", "Arial Narrow", "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; display: grid; place-items: center;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,.3) 2px 3px),
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 56px 100%,
+    var(--void);
+  color: var(--bone); font: 400 15px/1.6 var(--mono);
+  padding: 32px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px));
+}
+main { width: min(100%, 620px); }
+.code { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--red); margin: 0 0 12px; }
+h1 { font: 900 clamp(2.6rem, 11vw, 5.4rem)/.92 var(--display); text-transform: uppercase; margin: 0; }
+h1 em { font-style: normal; color: var(--red); text-shadow: 0 0 28px rgba(255,31,51,.55); }
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after { content: attr(data-text); position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.glitch::before { color: var(--red); animation: ga 3.4s steps(1) infinite; }
+.glitch::after { color: var(--fringe); animation: gb 3.4s steps(1) infinite; }
+@keyframes ga { 0%, 88%, 100% { opacity: 0; } 90% { opacity: .9; transform: translate(-6px, 2px); clip-path: inset(10% 0 56% 0); } 94% { opacity: .9; transform: translate(5px, 0); clip-path: inset(60% 0 8% 0); } 97% { opacity: 0; } }
+@keyframes gb { 0%, 88%, 100% { opacity: 0; } 91% { opacity: .8; transform: translate(6px, -2px); clip-path: inset(46% 0 24% 0); } 95% { opacity: .8; transform: translate(-4px, 0); clip-path: inset(4% 0 78% 0); } 97% { opacity: 0; } }
+pre {
+  margin: 28px 0 0; padding: 14px 16px 18px; background: var(--panel); border: 1px solid var(--line);
+  font: inherit; font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--dim);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+pre .p, pre b { color: var(--red); }
+pre i { font-style: normal; color: var(--bone); }
+.caret { display: inline-block; width: .6em; height: 1.05em; background: var(--red); vertical-align: -.18em; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.btn {
+  display: inline-flex; margin-top: 26px; padding: 12px 20px;
+  font: 700 13px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; text-decoration: none;
+  background: var(--red); color: var(--void);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+}
+.btn:hover { background: var(--bone); }
+.btn:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--bone); }
+</style>
+</head>
+<body>
+<main>
+  <p class="code">// error 404</p>
+  <h1><span class="glitch" data-text="Access">Access</span><br><em class="glitch" data-text="Denied">Denied</em></h1>
+<pre><span class="p">$</span> <i>cd <span id="path">/requested/path</span></i>
+bash: cd: no such file or directory
+<span class="p">$</span> <i>whoami</i>
+guest <b>// this node does not exist or was moved</b>
+<span class="p">$</span> <span class="caret"></span></pre>
+  <a class="btn" href="/">▶ Back to base</a>
+</main>
+<script>
+  document.getElementById("path").textContent = location.pathname;
+</script>
+</body>
+</html>
