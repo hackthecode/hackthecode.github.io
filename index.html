@@ -150,6 +150,10 @@ h1 em { font-style: normal; color: var(--red); text-shadow: 0 0 28px rgba(255,31
 }
 .term .p { color: var(--red); }
 .term .o { color: var(--dim); }
+.term .k { color: var(--red); }
+.term a { color: var(--bone); text-decoration-color: var(--red); text-underline-offset: 3px; }
+.term a:hover { color: var(--red); }
+.term.wide { max-width: 760px; margin-top: 0; }
 .caret { display: inline-block; width: .6em; height: 1.05em; background: var(--red); vertical-align: -.18em; animation: pulse 1s steps(2) infinite; }
 
 .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
@@ -321,14 +325,15 @@ footer a:hover { color: var(--red); }
 <pre id="term"><span class="p">$</span> whoami
 <span class="o">dragomir tsanev // hackthecode // alias: EVIL</span>
 <span class="p">$</span> uptime
-<span class="o">on github since 2012 · base: bulgaria</span>
+<span class="o">in computing since the Windows 95 days · base: bulgaria</span>
 <span class="p">$</span> ls ./projects
-<span class="o">evil-games/  imoti-i-imperii/  pu-foam-app/  archive/</span>
+<span class="o">evil-games/  imoti-i-imperii/  pu-foam-app/  archive/  profile.txt</span>
 <span class="p">$</span> <span class="caret"></span></pre>
       </div>
 
       <div class="cta">
         <a class="btn hot" href="#targets" data-bg="▶ Към проектите">▶ View projects</a>
+        <a class="btn" href="#profile" data-bg="Кой съм аз">Who I am</a>
         <a class="btn" href="https://github.com/hackthecode" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </div>
@@ -400,6 +405,58 @@ footer a:hover { color: var(--red); }
         <span class="l">C#</span><span class="y">2015</span></a></li>
     </ul>
   </section>
+
+  <section id="profile">
+    <div class="sec-head">
+      <h2 data-bg="Профил">Profile</h2><span class="rule"></span>
+      <span class="count">cat ~/*.txt</span>
+    </div>
+    <div class="term wide" aria-label="Profile terminal">
+      <div class="term-head"><span>evil@hackthecode:~</span><span>tty2</span></div>
+<pre id="profile-term"><span class="p">$</span> whoami
+<span class="o">Real Name: </span>Dragomir Tsanev
+<span class="o">Nick Name: </span>HackTheCode
+<span class="o">Mail:      </span><a href="mailto:texh00@gmail.com">texh00@gmail.com</a>
+
+<span class="p">$</span> cat ~/profile.txt
+Wide range of computing
+<span class="k">OS:</span>
+<span class="o">- Windows - 95, 98, 2000, ME, XP, Vista, 7, 8, 10
+- Linux   - Red Hat, Fedora, CentOS, Debian, Ubuntu, Mandriva
+- BSD     - FreeBSD 6.x, 7.x, 8.x, 9.x</span>
+<span class="k">My Info:</span>
+<span class="o">- Location: Bulgaria
+- Born: 1987</span>
+<span class="k">Programming and Scripting Languages:</span>
+<span class="o">- Java, C#, JavaScript, Python, PHP, bash, SQL, HTML, CSS</span>
+
+<span class="p">$</span> cat ~/work.txt
+<span class="o">- TOP-MAN
+- GlobalPakBG Ltd.
+- Micronet Ltd.
+- Gloub Industries Ltd.</span>
+
+<span class="p">$</span> cat ~/certification.txt
+<span class="o">- Microsoft Certified Professional
+- Microsoft Certified Systems Administrator
+- Microsoft Certified Systems Engineer
+- Cisco Certified Network Associate</span>
+
+<span class="p">$</span> cat ~/education.txt
+<span class="o">- PGSS K. A. Timiryazev, Twin Peaks</span>
+
+<span class="p">$</span> cat ~/interests.txt
+<span class="o">- Computer science
+- Network technologies
+- Electronic engineering</span>
+
+<span class="p">$</span> cat ~/web.txt
+<span class="o">- GitHub - </span><a href="https://github.com/hackthecode" target="_blank" rel="noopener">github.com/hackthecode</a>
+<span class="o">- Mail   - </span><a href="mailto:texh00@gmail.com">texh00@gmail.com</a>
+
+<span class="p">$</span> <span class="caret"></span></pre>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -439,30 +496,42 @@ footer a:hover { color: var(--red); }
   const tick = () => { clock.textContent = fmt.format(new Date()); };
   tick(); setInterval(tick, 1000);
 
-  // ---- terminal: retype the session that is already on the page ----
-  const term = document.getElementById("term");
-  if (!calm) {
+  // ---- terminals: retype the session that is already on the page ----
+  // Commands are typed key by key, their output prints line by line.
+  const caret = '<span class="caret"></span>';
+  const retype = (term) => {
     const full = term.innerHTML;
-    const caret = '<span class="caret"></span>';
-    const lines = full.replace(/<span class="caret"><\/span>/, "").split("\n");
-    let li = 0, ci = 0, done = "";
+    const lines = full.replace(caret, "").split("\n");
     const strip = (h) => h.replace(/<[^>]+>/g, "");
+    let li = 0, ci = 0, done = "";
     const step = () => {
       if (li >= lines.length) { term.innerHTML = full; return; }
-      const line = lines[li], isCmd = line.startsWith('<span class="p">');
-      if (!isCmd) {            // output prints at once
-        done += line + "\n"; li++; term.innerHTML = done + caret; setTimeout(step, 160); return;
+      const line = lines[li], last = li === lines.length - 1;
+      if (!line.startsWith('<span class="p">')) {
+        done += line + "\n"; li++; term.innerHTML = done + caret; setTimeout(step, line ? 70 : 20); return;
       }
       const text = strip(line).slice(2);
       if (ci <= text.length) {
         term.innerHTML = done + '<span class="p">$</span> ' + text.slice(0, ci) + caret;
-        ci++; setTimeout(step, 38 + Math.random() * 50);
+        ci++; setTimeout(step, 32 + Math.random() * 46);
       } else {
-        done += line + (li < lines.length - 1 ? "\n" : ""); li++; ci = 0; setTimeout(step, 220);
+        done += line + (last ? "" : "\n"); li++; ci = 0; setTimeout(step, 200);
       }
     };
+    term.style.minHeight = term.offsetHeight + "px";   // the page below must not jump while typing
     term.innerHTML = '<span class="p">$</span> ' + caret;
-    setTimeout(step, 500);
+    setTimeout(step, 450);
+  };
+  // Typing is text appearing in place, not movement, so it also runs with reduced motion.
+  {
+    retype(document.getElementById("term"));
+    const profile = document.getElementById("profile-term");
+    if ("IntersectionObserver" in window) {
+      const seen = new IntersectionObserver((hits) => {
+        if (hits.some((h) => h.isIntersecting)) { seen.disconnect(); retype(profile); }
+      }, { threshold: 0.15 });
+      seen.observe(profile);
+    }
   }
 
   // ---- hex rain ----
