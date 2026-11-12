@@ -1,324 +1,499 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<!-- Head tag -->
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hack The Code</title>
+<meta name="description" content="Dragomir Tsanev (hackthecode) — browser games and tools. Public projects, live links and source.">
+<meta name="theme-color" content="#050506">
+<meta property="og:title" content="Hack The Code">
+<meta property="og:description" content="Dragomir Tsanev — browser games and tools. Public projects, live links and source.">
+<meta property="og:image" content="https://hackthecode.github.io/assets/evil.png">
+<meta property="og:url" content="https://hackthecode.github.io/">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Tektur:wght@500;700;900&display=swap">
+<style>
+/* Layout: a tactical HUD dossier — status bar, subject file (terminal + portrait in a reticle), then target cards. */
+:root {
+  color-scheme: dark;
+  --void: #050506;      /* page ground */
+  --panel: #0d0a0b;     /* card and terminal surfaces */
+  --line: #33151a;      /* resting borders, grid */
+  --red: #ff1f33;       /* the signal colour */
+  --blood: #9c0f1d;     /* deep red for fills and glows */
+  --bone: #ece5dd;      /* text, taken from the skull */
+  --dim: #94848a;       /* secondary text */
+  --fringe: #2be0da;    /* chromatic fringe from the portrait; glitch only */
+  --display: "Tektur", "Arial Narrow", "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  --cut: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--bone);
+  font: 400 15px/1.6 var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+::selection { background: var(--red); color: var(--void); }
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+/* ---------- atmosphere ---------- */
+#rain { position: fixed; inset: 0; width: 100%; height: 100%; opacity: .32; z-index: 0; pointer-events: none; }
+.fx { position: fixed; inset: 0; pointer-events: none; }
+.fx-grid {
+  z-index: 0;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 56px 100%;
+  opacity: .28;
+  mask-image: radial-gradient(ellipse at 50% 20%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 20%, #000 0%, transparent 75%);
+}
+.fx-scan {
+  z-index: 5;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,.28) 2px 3px);
+  mix-blend-mode: multiply;
+}
+.fx-vig { z-index: 5; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%); }
 
-    <!--Description-->
-    
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
 
-    <!--Author-->
-    
-        <meta name="author" content="Dragomir Tsanev">
-    
+/* ---------- status bar ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 4;
+  background: rgba(5,5,6,.86);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+.bar .wrap {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px;
+  padding-block: 10px;
+  font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+}
+.bar .tag { color: var(--red); font-weight: 700; }
+.bar .grow { flex: 1; }
+.bar b { color: var(--bone); font-weight: 500; font-variant-numeric: tabular-nums; }
+.dot { display: inline-block; width: 7px; height: 7px; background: var(--red); margin-right: 7px; box-shadow: 0 0 8px var(--red); animation: pulse 1.6s steps(2) infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.lang { display: inline-flex; border: 1px solid var(--line); }
+.lang button {
+  font: inherit; letter-spacing: inherit; color: var(--dim);
+  background: none; border: 0; padding: 3px 9px; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--red); color: var(--void); font-weight: 700; }
 
-    <!--Open Graph Title-->
-    
-        <meta property="og:title" content="HackTheCode"/>
-    
+/* ---------- hero ---------- */
+.hero {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  gap: 48px; align-items: center;
+  padding-block: 64px 56px;
+}
+.eyebrow { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--red); margin: 0 0 14px; }
+.eyebrow::before { content: "// "; color: var(--dim); }
+h1 {
+  font: 900 clamp(2.9rem, 9.4vw, 6.6rem)/.92 var(--display);
+  letter-spacing: -.01em; text-transform: uppercase;
+  margin: 0; text-wrap: balance;
+}
+h1 em { font-style: normal; color: var(--red); text-shadow: 0 0 28px rgba(255,31,51,.55); }
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after {
+  content: attr(data-text); position: absolute; inset: 0; pointer-events: none; opacity: 0;
+}
+.glitch::before { color: var(--red); animation: gl-a 5.2s steps(1) infinite; }
+.glitch::after { color: var(--fringe); animation: gl-b 5.2s steps(1) infinite; }
+@keyframes gl-a {
+  0%, 91%, 100% { opacity: 0; }
+  92% { opacity: .9; transform: translate(-5px, 2px); clip-path: inset(12% 0 58% 0); }
+  94% { opacity: .9; transform: translate(4px, -1px); clip-path: inset(62% 0 8% 0); }
+  96% { opacity: .9; transform: translate(-3px, 0); clip-path: inset(36% 0 40% 0); }
+  98% { opacity: 0; }
+}
+@keyframes gl-b {
+  0%, 91%, 100% { opacity: 0; }
+  92% { opacity: .8; transform: translate(5px, -2px); clip-path: inset(48% 0 22% 0); }
+  94% { opacity: .8; transform: translate(-4px, 1px); clip-path: inset(6% 0 76% 0); }
+  96% { opacity: .8; transform: translate(3px, 0); clip-path: inset(70% 0 12% 0); }
+  98% { opacity: 0; }
+}
+.lede { max-width: 54ch; margin: 22px 0 0; color: var(--bone); font-size: 16px; }
+.lede strong { color: var(--red); font-weight: 700; }
 
-    <!--Open Graph Description-->
-    
+.term {
+  margin-top: 30px; max-width: 560px;
+  background: var(--panel); border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+}
+.term-head {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 7px 14px; border-bottom: 1px solid var(--line);
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.term pre {
+  margin: 0; padding: 14px 16px 18px; min-height: 13.2em;
+  font: inherit; font-size: 13.5px; line-height: 1.65;
+  white-space: pre-wrap; overflow-wrap: anywhere; color: var(--bone);
+}
+.term .p { color: var(--red); }
+.term .o { color: var(--dim); }
+.caret { display: inline-block; width: .6em; height: 1.05em; background: var(--red); vertical-align: -.18em; animation: pulse 1s steps(2) infinite; }
 
-    <!--Open Graph Site Name-->
-    <meta property="og:site_name" content="HackTheCode"/>
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 11px 18px;
+  font: 700 13px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; text-decoration: none;
+  color: var(--bone); background: transparent; border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn:hover { border-color: var(--red); color: var(--red); }
+.btn.hot { background: var(--red); border-color: var(--red); color: var(--void); }
+.btn.hot:hover { background: var(--bone); border-color: var(--bone); color: var(--void); }
 
-    <!--Type page-->
-    
-        <meta property="og:type" content="website" />
-    
+/* portrait in a reticle */
+.id { margin: 0; justify-self: center; width: min(100%, 380px); }
+.id-frame { position: relative; aspect-ratio: 1; max-width: 100%; }
+.id-frame::before, .id-frame::after {
+  content: ""; position: absolute; inset: -12px; pointer-events: none; z-index: 2;
+}
+.id-frame::before {
+  background:
+    linear-gradient(var(--red), var(--red)) 0 0 / 34px 2px, linear-gradient(var(--red), var(--red)) 0 0 / 2px 34px,
+    linear-gradient(var(--red), var(--red)) 100% 0 / 34px 2px, linear-gradient(var(--red), var(--red)) 100% 0 / 2px 34px,
+    linear-gradient(var(--red), var(--red)) 0 100% / 34px 2px, linear-gradient(var(--red), var(--red)) 0 100% / 2px 34px,
+    linear-gradient(var(--red), var(--red)) 100% 100% / 34px 2px, linear-gradient(var(--red), var(--red)) 100% 100% / 2px 34px;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 6px var(--red));
+}
+.id-frame::after {
+  inset: 0;
+  background: linear-gradient(to bottom, transparent, rgba(255,31,51,.28) 50%, transparent) 0 0 / 100% 22% no-repeat;
+  animation: sweep 4.5s linear infinite;
+}
+@keyframes sweep { from { background-position: 0 -30%; } to { background-position: 0 130%; } }
+.id-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.id-frame .g { opacity: 0; mix-blend-mode: screen; }
+.id-frame .g1 { animation: im-a 6.4s steps(1) infinite; }
+.id-frame .g2 { animation: im-b 6.4s steps(1) infinite; filter: hue-rotate(160deg); }
+.id:hover .g1 { animation-duration: 1.1s; }
+.id:hover .g2 { animation-duration: 1.1s; }
+@keyframes im-a {
+  0%, 86%, 100% { opacity: 0; }
+  87% { opacity: .9; transform: translate(-10px, 0); clip-path: inset(18% 0 66% 0); }
+  90% { opacity: .9; transform: translate(8px, 0); clip-path: inset(58% 0 28% 0); }
+  93% { opacity: .9; transform: translate(-6px, 0); clip-path: inset(80% 0 6% 0); }
+  95% { opacity: 0; }
+}
+@keyframes im-b {
+  0%, 86%, 100% { opacity: 0; }
+  88% { opacity: .7; transform: translate(9px, 0); clip-path: inset(40% 0 44% 0); }
+  91% { opacity: .7; transform: translate(-7px, 0); clip-path: inset(6% 0 82% 0); }
+  94% { opacity: 0; }
+}
+.id figcaption {
+  display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  margin-top: 24px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.id figcaption b { color: var(--red); font-weight: 700; }
 
-    <!--Page Cover-->
-    
+/* ---------- sections ---------- */
+section { padding-block: 34px; }
+.sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px; }
+.sec-head h2 {
+  font: 700 clamp(1.5rem, 4vw, 2.1rem)/1 var(--display); letter-spacing: .04em; text-transform: uppercase; margin: 0;
+}
+.sec-head h2::before { content: "▮ "; color: var(--red); }
+.sec-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--red), transparent); min-width: 20px; }
+.sec-head .count { font-size: 12px; letter-spacing: .16em; color: var(--dim); text-transform: uppercase; white-space: nowrap; }
 
-    <meta name="twitter:card" content="summary" />
-    
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.card {
+  position: relative; display: flex; padding: 1px; min-width: 0;
+  background: var(--line);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+  transition: background .2s, transform .2s;
+}
+.card:hover, .card:focus-within { background: var(--red); transform: translateY(-3px); }
+.card-in {
+  position: relative; flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  padding: 20px 20px 22px; background: var(--panel); overflow: hidden;
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+}
+.card-in::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -40%; height: 40%; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(255,31,51,.14));
+  opacity: 0;
+}
+.card:hover .card-in::after { opacity: 1; animation: cardscan .9s linear; }
+@keyframes cardscan { from { top: -40%; } to { top: 100%; } }
+.card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.live { color: var(--red); font-weight: 700; white-space: nowrap; }
+.card h3 { font: 700 1.5rem/1.05 var(--display); letter-spacing: .02em; text-transform: uppercase; margin: 0; overflow-wrap: anywhere; }
+.card:hover h3 { color: var(--red); text-shadow: 2px 0 0 rgba(43,224,218,.35); }
+.card p { margin: 0; color: var(--dim); font-size: 13.5px; flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.chips li { font-size: 11px; letter-spacing: .08em; padding: 2px 8px; border: 1px solid var(--line); color: var(--bone); }
+.card .cta { margin-top: 2px; }
+.card .btn { padding: 9px 13px; font-size: 12px; }
 
-    <!-- Title -->
-    
-    <title>HackTheCode</title>
+.arch { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.arch a {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 22px; align-items: baseline;
+  padding: 14px 6px; border-bottom: 1px solid var(--line); text-decoration: none;
+  transition: background .15s, padding-left .15s;
+}
+.arch a:hover { background: rgba(255,31,51,.07); padding-left: 14px; }
+.arch .n { font-weight: 700; overflow-wrap: anywhere; min-width: 0; }
+.arch a:hover .n { color: var(--red); }
+.arch .n small { display: block; font-weight: 400; font-size: 12.5px; color: var(--dim); }
+.arch .l, .arch .y { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
 
-    <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+footer { margin-top: 30px; border-top: 1px solid var(--line); }
+footer .wrap {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+  padding-block: 22px calc(28px + env(safe-area-inset-bottom, 0px));
+  font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim);
+}
+footer a { color: var(--bone); text-decoration: none; border-bottom: 1px solid var(--red); }
+footer a:hover { color: var(--red); }
 
-    <!-- Custom Fonts -->
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-    <!-- Gallery -->
-    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css/style.css">
-
-    <!-- Google Analytics -->
-    
-
-
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 44px; padding-block: 40px 36px; }
+  .id { order: -1; width: min(72%, 300px); }
+}
+@media (max-width: 600px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .bar .hide-s { display: none; }
+  .arch a { grid-template-columns: minmax(0, 1fr) auto; }
+  .arch .y { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+  #rain { display: none; }
+}
+</style>
 </head>
-
-
 <body>
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="fx fx-grid" aria-hidden="true"></div>
 
-<div class="bg-gradient"></div>
-<div class="bg-pattern"></div>
-
-<!-- Menu -->
-<!--Menu Links and Overlay-->
-<div class="menu-bg">
-    <div class="menu-container">
-        <ul>
-            
-            <li class="menu-item">
-                <a href="/">
-                    Home
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/archives">
-                    Archives
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/about.html">
-                    About
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/contact.html">
-                    Contact
-                </a>
-            </li>
-            
-        </ul>
-    </div>
-</div>
-
-<!--Hamburger Icon-->
-<nav>
-    <a href="#menu"></a>
-</nav>
-
-<div class="container">
-
-    <!-- Main Content -->
-    <div class="row">
-    <div class="col-sm-12">
-
-        <!--Title and Logo-->
-        <header>
-    <div class="logo">
-        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
-        
-            <h1 id="main-title" class="title">HackTheCode</h1>
-        
-    </div>
+<header class="bar">
+  <div class="wrap">
+    <span class="tag">hackthecode</span>
+    <span><span class="dot"></span><span data-bg="на линия">online</span></span>
+    <span class="hide-s" data-bg="България">Bulgaria</span>
+    <span class="grow"></span>
+    <span class="hide-s"><span data-bg="София">Sofia</span> <b id="clock">--:--:--</b></span>
+    <span class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true">EN</button>
+      <button type="button" id="lang-bg" aria-pressed="false">BG</button>
+    </span>
+  </div>
 </header>
 
-        <section class="main">
-            
-                
-<div class="post">
+<main class="wrap">
+  <div class="hero">
+    <div>
+      <p class="eyebrow" data-bg="досие · публичен достъп">dossier · public access</p>
+      <h1><span class="glitch" data-text="Hack the">Hack the</span><br><em class="glitch" data-text="Code">Code</em></h1>
+      <p class="lede" data-bg="Аз съм <strong>Драгомир Цанев</strong>. Правя браузър игри и инструменти, които вършат работа — без инсталация, направо от линка.">I'm <strong>Dragomir Tsanev</strong>. I build browser games and tools that get the job done — no install, straight from the link.</p>
 
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2016/09/16/hello-world/">
-                Hello World
-            </a>
-        </h1>
-        <div class="post-info">
-            <span class="date">2016-09-16</span>
-            
-            
-        </div>
+      <div class="term" aria-label="Terminal">
+        <div class="term-head"><span>evil@hackthecode:~</span><span>tty1</span></div>
+<pre id="term"><span class="p">$</span> whoami
+<span class="o">dragomir tsanev // hackthecode // alias: EVIL</span>
+<span class="p">$</span> uptime
+<span class="o">on github since 2012 · base: bulgaria</span>
+<span class="p">$</span> ls ./projects
+<span class="o">evil-games/  imoti-i-imperii/  pu-foam-app/  archive/</span>
+<span class="p">$</span> <span class="caret"></span></pre>
+      </div>
+
+      <div class="cta">
+        <a class="btn hot" href="#targets" data-bg="▶ Към проектите">▶ View projects</a>
+        <a class="btn" href="https://github.com/hackthecode" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
     </div>
 
-    
-        <div class="content">
-            <p>Welcome to <a href="https://hackthecode.github.io/" target="_blank" rel="external">HackTheCode</a></p>
-<h2 id="About"><a href="#About" class="headerlink" title="About"></a>About</h2><p>info: <a href="http://hackthecode.no-ip.org/files/about.html" target="_blank" rel="external">About</a></p>
+    <figure class="id">
+      <div class="id-frame">
+        <img src="assets/evil.webp" width="460" height="460" alt="EVIL — a hooded skull in red, the hackthecode profile logo">
+        <img class="g g1" src="assets/evil.webp" width="460" height="460" alt="" aria-hidden="true">
+        <img class="g g2" src="assets/evil.webp" width="460" height="460" alt="" aria-hidden="true">
+      </div>
+      <figcaption><span><span data-bg="обект">subject</span>: <b>EVIL</b></span><span><span data-bg="статус">status</span>: <b data-bg="активен">active</b></span></figcaption>
+    </figure>
+  </div>
 
-        </div>
-    
-
-</div>
-            
-        </section>
+  <section id="targets">
+    <div class="sec-head">
+      <h2 data-bg="Проекти">Projects</h2><span class="rule"></span>
+      <span class="count" data-bg="3 на живо">3 live</span>
     </div>
-</div>
+    <div class="grid">
 
+      <article class="card"><div class="card-in">
+        <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="игрален портал">game portal</span></div>
+        <h3>Evil Games</h3>
+        <p data-bg="Портал с браузър игри: табла, шах, белот, сантасе, блато, не се сърди човече, пасианс и стратегията Evil Empires. Срещу компютъра или онлайн с приятели. На български и английски.">A browser game portal: backgammon, chess, belot, santase, blato, ludo, solitaire and the Evil Empires strategy game. Play the computer or friends online. English and Bulgarian.</p>
+        <ul class="chips"><li>JavaScript</li><li>PWA</li><li>Supabase</li></ul>
+        <div class="cta">
+          <a class="btn hot" href="https://hackthecode.github.io/evil-games/" data-bg="▶ Играй">▶ Play</a>
+          <a class="btn" href="https://github.com/hackthecode/evil-games" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
+        </div>
+      </div></article>
 
+      <article class="card"><div class="card-in">
+        <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="настолна игра">board game</span></div>
+        <h3 data-bg="Имоти и Империи">Imoti i Imperii</h3>
+        <p data-bg="Настолна игра с имоти за 2 до 10 играчи — с ботове или онлайн в стая с код. Целият ход на играта се води от собствен сървър, така че никой не може да мами.">A property board game for 2 to 10 players, with bots or online in a room with a code. Its own server runs every move, so nobody can cheat.</p>
+        <ul class="chips"><li>Python</li><li>FastAPI</li><li>Socket.IO</li></ul>
+        <div class="cta">
+          <a class="btn hot" href="https://hackthecode.github.io/evil-games/imoti/" data-bg="▶ Играй">▶ Play</a>
+          <a class="btn" href="https://github.com/hackthecode/evil-games/tree/main/server/imoti" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
+        </div>
+      </div></article>
 
+      <article class="card"><div class="card-in">
+        <div class="card-top"><span class="live"><span class="dot"></span><span data-bg="на живо">live</span></span><span data-bg="производство">production tool</span></div>
+        <h3 data-bg="ПУ Пяна">PU Foam</h3>
+        <p data-bg="Производствен асистент за пенополиуретан (дунапрен): калкулатор за материали и плътност, калибратор обороти ↔ грамове, рецепти с търсачка. Данните идват на живо от Google Sheets и работи и без интернет.">A production assistant for polyurethane foam: material and density calculator, RPM ↔ grams calibrator, searchable recipes. Data syncs live from Google Sheets and it keeps working offline.</p>
+        <ul class="chips"><li>JavaScript</li><li>PWA</li><li>Google Sheets</li></ul>
+        <div class="cta">
+          <a class="btn hot" href="https://hackthecode.github.io/pu-foam-app/" data-bg="▶ Отвори">▶ Open</a>
+          <a class="btn" href="https://github.com/hackthecode/pu-foam-app" target="_blank" rel="noopener" data-bg="Код ↗">Source ↗</a>
+        </div>
+      </div></article>
 
-
-
-</div>
-
-<!-- Footer -->
-<div class="push"></div>
-
-<footer class="footer-content">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
-                <h2>About</h2>
-                <p>
-                    This static web site developed by <a href="http://hackthecode.no-ip.org">Dragomir Tsanev</a>.
-                </p>
-            </div>
-            
-    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
-        <h2>Recent Posts</h2>
-        <ul>
-            
-            <li>
-                <a class="footer-post" href="/2016/09/16/hello-world/">Hello World</a>
-            </li>
-            
-        </ul>
     </div>
+  </section>
 
-
-
-            
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <ul class="list-inline footer-social-icons">
-                    
-                    <li class="list-inline-item">
-                        <a href="https://github.com/hackthecode">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-github"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                    
-<!--                     <li class="list-inline-item">
-                        <a href="https://twitter.com/?lang=en">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-twitter"></i>
-                            </span>
-                        </a>
-                    </li> -->
-                    
-                    
-                    <li class="list-inline-item">
-                        <a href="https://www.facebook.com/HackTheCode">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-facebook"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                    
- <!--                    <li class="list-inline-item">
-                        <a href="https://www.instagram.com/">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-instagram"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                    
-                    <li class="list-inline-item">
-                        <a href="https://dribbble.com/">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-dribbble"></i>
-                            </span>
-                        </a>
-                    </li> -->
-                    
-                    
-                    <li class="list-inline-item">
-                        <a href="https://plus.google.com/u/0/+%D0%94%D1%80%D0%B0%D0%B3%D0%BE%D0%BC%D0%B8%D1%80%D0%A6%D0%B0%D0%BD%D0%B5%D0%B2">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-google-plus"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                    
-<!--                     <li class="list-inline-item">
-                        <a href="https://www.behance.net/">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-behance"></i>
-                            </span>
-                        </a>
-                    </li> -->
-                    
-                    
-<!--                     <li class="list-inline-item">
-                        <a href="https://500px.com/">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-500px"></i>
-                            </span>
-                        </a>
-                    </li> -->
-                    
-                    
-                    <li class="list-inline-item">
-                        <a href="mailto:texh00@gmail.com">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-envelope-o"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                    
-                    <li class="list-inline-item">
-                        <a href="\#">
-                            <span class="footer-icon-container">
-                                <i class="fa fa-rss"></i>
-                            </span>
-                        </a>
-                    </li>
-                    
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <div class="footer-copyright">
-                    @HackTheCode. All right reserved | Design & Hexo <a href="http://www.codeblocq.com/">Jonathan Klughertz</a>
-                </div>
-            </div>
-        </div>
+  <section>
+    <div class="sec-head">
+      <h2 data-bg="Архив">Archive</h2><span class="rule"></span>
+      <span class="count" data-bg="учебни записи">training logs</span>
     </div>
+    <ul class="arch">
+      <li><a href="https://github.com/hackthecode/Java-Fundamentals-2016" target="_blank" rel="noopener">
+        <span class="n">Java-Fundamentals-2016<small data-bg="Упражнения от курса Java Fundamentals в СофтУни">Exercises from the SoftUni Java Fundamentals course</small></span>
+        <span class="l">Java</span><span class="y">2016</span></a></li>
+      <li><a href="https://github.com/hackthecode/SoftUni_Programming_Basics-11.2015" target="_blank" rel="noopener">
+        <span class="n">SoftUni_Programming_Basics-11.2015<small data-bg="Домашни от курса Programming Basics в СофтУни">Homework from the SoftUni Programming Basics course</small></span>
+        <span class="l">C#</span><span class="y">2015</span></a></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Dragomir Tsanev</span>
+    <span data-bg="без тракери · без бисквитки">no trackers · no cookies</span>
+    <a href="https://github.com/hackthecode" target="_blank" rel="noopener">github.com/hackthecode</a>
+  </div>
 </footer>
 
-<!-- After footer scripts -->
+<div class="fx fx-scan" aria-hidden="true"></div>
+<div class="fx fx-vig" aria-hidden="true"></div>
 
-<!-- jQuery -->
-<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+<script>
+(() => {
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-<!-- Tween Max -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+  // ---- language: English is in the markup, Bulgarian in data-bg ----
+  const nodes = [...document.querySelectorAll("[data-bg]")];
+  nodes.forEach((n) => { n.dataset.en = n.innerHTML; });
+  const setLang = (lang) => {
+    nodes.forEach((n) => { n.innerHTML = lang === "bg" ? n.dataset.bg : n.dataset.en; });
+    document.documentElement.lang = lang;
+    document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
+    document.getElementById("lang-bg").setAttribute("aria-pressed", String(lang === "bg"));
+    try { localStorage.setItem("htc.lang", lang); } catch (e) {}
+  };
+  let saved = null;
+  try { saved = localStorage.getItem("htc.lang"); } catch (e) {}
+  setLang(saved || ((navigator.language || "").toLowerCase().startsWith("bg") ? "bg" : "en"));
+  document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
+  document.getElementById("lang-bg").addEventListener("click", () => setLang("bg"));
 
-<!-- Gallery -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+  // ---- Sofia clock ----
+  const clock = document.getElementById("clock");
+  const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const tick = () => { clock.textContent = fmt.format(new Date()); };
+  tick(); setInterval(tick, 1000);
 
-<!-- Custom JavaScript -->
-<script src="/js/main.js"></script>
+  // ---- terminal: retype the session that is already on the page ----
+  const term = document.getElementById("term");
+  if (!calm) {
+    const full = term.innerHTML;
+    const caret = '<span class="caret"></span>';
+    const lines = full.replace(/<span class="caret"><\/span>/, "").split("\n");
+    let li = 0, ci = 0, done = "";
+    const strip = (h) => h.replace(/<[^>]+>/g, "");
+    const step = () => {
+      if (li >= lines.length) { term.innerHTML = full; return; }
+      const line = lines[li], isCmd = line.startsWith('<span class="p">');
+      if (!isCmd) {            // output prints at once
+        done += line + "\n"; li++; term.innerHTML = done + caret; setTimeout(step, 160); return;
+      }
+      const text = strip(line).slice(2);
+      if (ci <= text.length) {
+        term.innerHTML = done + '<span class="p">$</span> ' + text.slice(0, ci) + caret;
+        ci++; setTimeout(step, 38 + Math.random() * 50);
+      } else {
+        done += line + (li < lines.length - 1 ? "\n" : ""); li++; ci = 0; setTimeout(step, 220);
+      }
+    };
+    term.innerHTML = '<span class="p">$</span> ' + caret;
+    setTimeout(step, 500);
+  }
 
-<!-- Disqus Comments -->
-
-
-
+  // ---- hex rain ----
+  const cv = document.getElementById("rain");
+  if (!calm && cv.getContext) {
+    const cx = cv.getContext("2d");
+    const glyphs = "0123456789ABCDEF<>/{}#$";
+    const size = 18;
+    let cols = 0, drops = [], w = 0, h = 0;
+    const fit = () => {
+      w = cv.width = innerWidth; h = cv.height = innerHeight;
+      cols = Math.ceil(w / size);
+      drops = Array.from({ length: cols }, () => Math.random() * -60);
+    };
+    fit(); addEventListener("resize", fit);
+    let last = 0;
+    const draw = (t) => {
+      requestAnimationFrame(draw);
+      if (document.hidden || t - last < 70) return;
+      last = t;
+      cx.fillStyle = "rgba(5,5,6,.14)"; cx.fillRect(0, 0, w, h);
+      cx.font = size - 4 + "px JetBrains Mono, monospace";
+      for (let i = 0; i < cols; i++) {
+        const y = drops[i] * size;
+        cx.fillStyle = Math.random() < .04 ? "#ece5dd" : "#ff1f33";
+        cx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * size, y);
+        drops[i] = y > h && Math.random() > .975 ? 0 : drops[i] + 1;
+      }
+    };
+    requestAnimationFrame(draw);
+  }
+})();
+</script>
 </body>
-
 </html>
