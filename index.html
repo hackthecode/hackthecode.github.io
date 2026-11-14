@@ -337,7 +337,6 @@ footer .social a span { display: none; }
 
 /* ---------- project shots ---------- */
 .shot { position: relative; display: block; margin: -20px -20px 2px; aspect-ratio: 16 / 9; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--void); }
-.shot picture { display: block; width: 100%; height: 100%; }
 .shot img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.75) contrast(1.05); transition: transform .5s, filter .3s; }
 .shot::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(156,15,29,.28), transparent 45%, rgba(5,5,6,.55)); mix-blend-mode: multiply; transition: opacity .3s; }
 .card:hover .shot img { transform: scale(1.05); filter: none; }
@@ -478,7 +477,7 @@ archive/  profile.txt</span>
       </div></article>
 
       <article class="card"><div class="card-in">
-        <a class="shot" href="https://github.com/hackthecode/evil-watchface" tabindex="-1" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/shot-evil-watchface.png"><img src="assets/anim-evil-watchface.png" width="800" height="450" alt="EVIL watch face: stencil time with heart rate, steps, battery and weather fields" loading="lazy"></picture></a>
+        <a class="shot" href="https://github.com/hackthecode/evil-watchface" tabindex="-1" aria-hidden="true"><img src="assets/anim-evil-watchface.png" width="800" height="450" alt="EVIL watch face: stencil time with heart rate, steps, battery and weather fields" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span>APK</span><span data-bg="циферблат">watch face</span></div>
         <h3>EVIL</h3>
         <p data-bg="Циферблат за Wear OS във военен стил: двуцветен час с шаблонен шрифт, червена секундна стрелка по минутната скала и девет полета с данни на живо — пулс, крачки, изминато разстояние, батерия, известия, температура и дъжд. Само ресурси, без код.">A military-style watch face for Wear OS: two-tone stencil time, a red seconds hand sweeping the minute bezel and nine live data fields — heart rate, steps, distance, battery, notifications, temperature and rain. Resources only, no code.</p>
@@ -491,7 +490,7 @@ archive/  profile.txt</span>
       </div></article>
 
       <article class="card"><div class="card-in">
-        <a class="shot" href="https://github.com/hackthecode/nixie-watchface" tabindex="-1" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/shot-nixie-watchface.png"><img src="assets/anim-nixie-watchface.png" width="800" height="450" alt="Nixie watch face: four glowing nixie tubes showing the time" loading="lazy"></picture></a>
+        <a class="shot" href="https://github.com/hackthecode/nixie-watchface" tabindex="-1" aria-hidden="true"><img src="assets/anim-nixie-watchface.png" width="800" height="450" alt="Nixie watch face: four glowing nixie tubes showing the time" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span>APK</span><span data-bg="циферблат">watch face</span></div>
         <h3>Nixie</h3>
         <p data-bg="Часовник с газоразрядни лампи за Wear OS: четири лампи тип ИН-14 със светещи цифри, видими неактивни катоди зад тях и неонов индикатор за батерията. Всяко изображение е генерирано с код — без снимки.">A nixie tube clock for Wear OS: four IN-14 style tubes with glowing wire digits, the unlit cathodes visible behind them and a neon battery gauge. Every bitmap is rendered by code — no photos.</p>
@@ -504,7 +503,7 @@ archive/  profile.txt</span>
       </div></article>
 
       <article class="card"><div class="card-in">
-        <a class="shot" href="https://github.com/hackthecode/predator-watchface" tabindex="-1" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/shot-predator-watchface.png"><img src="assets/anim-predator-watchface.png" width="800" height="450" alt="Predator watch face: red dash-style digits on black" loading="lazy"></picture></a>
+        <a class="shot" href="https://github.com/hackthecode/predator-watchface" tabindex="-1" aria-hidden="true"><img src="assets/anim-predator-watchface.png" width="800" height="450" alt="Predator watch face: red dash-style digits on black" loading="lazy"></a>
         <div class="card-top"><span class="live"><span class="dot"></span>APK</span><span data-bg="циферблат">watch face</span></div>
         <h3>Predator</h3>
         <p data-bg="Китков дисплей на ловец за Wear OS: яркочервени чертички върху чисто черно. Събужда се с извънземни символи, които за две секунди се сглобяват в часа и после пак се разпадат на символи. Батерията е ред от десет чертички.">A hunter's wrist display for Wear OS: bright red dashes on pure black. It wakes showing alien symbols that assemble into the time over two seconds, then fall apart into symbols again. The battery is a row of ten dashes.</p>
